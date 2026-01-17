@@ -43,7 +43,7 @@
 
         /* LOGO STYLE */
         .brand-logo { 
-            width: 250px; 
+            width: 300px; 
             height: auto; 
             margin-bottom: 10px; 
         }
@@ -86,12 +86,12 @@
             
             <div class="reg-form">
                 <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
-                <input type="text" id="inp-class" class="input-field" placeholder="Class / Grade (e.g. 10)" required>
+                <input type="text" id="inp-class" class="input-field" placeholder="Class" required>
                 <input type="number" id="inp-age" class="input-field" placeholder="Age" required>
                 <input type="text" id="inp-place" class="input-field" placeholder="Place" required>
                 <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" required>
                 
-                <button class="btn-start" onclick="validateAndStart()">START 🚀</button>
+                <button class="btn-start" onclick="validateAndStart()">Start Adventure 🚀</button>
             </div>
         </div>
 
@@ -126,15 +126,15 @@
     </div>
 
     <script>
-        // --- CONFIGURATION: YOUR NEW GOOGLE SCRIPT URL ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbTyRcCjK9ZT4Y26B-5CBE5EzhPO2kxfyqawqOrd-I90FSSuF_O8pRxONDEmQ_9KtD5BAQ/exec"; 
+        // --- CONFIGURATION: I HAVE INSERTED YOUR CORRECT URL FROM SCREENSHOT ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTRcCjK9ZT4Y26B-5CBE5EzhPO2kxfyqawqOrd-I90FSSuF_O8pRxONDEmQ_9KtD5BAQ/exec"; 
 
         /* --- 1. USER DATA STORAGE --- */
         let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
 
         function validateAndStart() {
             const name = document.getElementById('inp-name').value;
-            const stuClass = document.getElementById('inp-class').value; // Get Class
+            const stuClass = document.getElementById('inp-class').value;
             const age = document.getElementById('inp-age').value;
             const place = document.getElementById('inp-place').value;
             const phone = document.getElementById('inp-phone').value;
@@ -242,13 +242,12 @@
         }
 
         function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
-            // Update the status
             const statusBox = document.getElementById('save-status');
             statusBox.innerText = "Saving result...";
 
             const dataPayload = {
                 Name: userInfo.name,
-                Class: userInfo.class, // SEND NEW CLASS FIELD
+                Class: userInfo.class, 
                 Age: userInfo.age,
                 Place: userInfo.place,
                 Phone: userInfo.phone,
