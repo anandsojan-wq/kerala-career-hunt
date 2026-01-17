@@ -7,7 +7,7 @@
     <style>
         /* --- VISUAL STYLE (CSS) --- */
         :root {
-            --primary: #ff9800; /* Orange */
+            --primary: #05ABDF; /* NEW BLUE COLOR */
             --secondary: #4caf50; /* Green */
             --bg: #e0f7fa;
             --text: #2c3e50;
@@ -43,7 +43,7 @@
 
         /* LOGO STYLE */
         .brand-logo { 
-            width: 150px; /* Adjust size here */
+            width: 250px; 
             height: auto; 
             margin-bottom: 10px; 
         }
@@ -51,13 +51,13 @@
         .popup-title { font-size: 1.8rem; color: var(--primary); margin: 5px 0 20px 0; text-transform: uppercase; line-height: 1.2; }
         .reg-form { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px; }
         .input-field { padding: 12px 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; outline: none; }
-        .input-field:focus { border-color: var(--secondary); background: #f1f8e9; }
+        .input-field:focus { border-color: var(--primary); background: #e1f5fe; }
         
         .btn-start {
             margin-top: 10px; padding: 15px 30px; font-size: 1.1rem;
             background: var(--primary); color: white; border: none;
             border-radius: 50px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 0 #e65100; transition: transform 0.1s;
+            box-shadow: 0 4px 0 #0277bd; transition: transform 0.1s;
         }
         .btn-start:active { transform: translateY(4px); box-shadow: none; }
 
@@ -80,17 +80,18 @@
 
     <div id="game-container">
         <div id="intro-popup">
-            <img src="logo.png" alt="PN Panicker Foundation" class="brand-logo" onerror="this.style.display='none'">
+            <img src="logo.png" alt="ICM Education" class="brand-logo" onerror="this.style.display='none'">
             
-            <div class="foundation-badge" style="background:#333; color:white; padding:5px 10px; border-radius:15px; font-size:0.7rem;">PN Panicker Foundation Presents</div>
             <h1 class="popup-title">FiND YOUR<br>DREAM CAREER</h1>
             
             <div class="reg-form">
                 <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
-                <input type="number" id="inp-age" class="input-field" placeholder="Age (e.g. 12)" required>
+                <input type="text" id="inp-class" class="input-field" placeholder="Class / Grade (e.g. 10)" required>
+                <input type="number" id="inp-age" class="input-field" placeholder="Age" required>
                 <input type="text" id="inp-place" class="input-field" placeholder="Place" required>
                 <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" required>
-                <button class="btn-start" onclick="validateAndStart()">START</button>
+                
+                <button class="btn-start" onclick="validateAndStart()">START 🚀</button>
             </div>
         </div>
 
@@ -125,23 +126,24 @@
     </div>
 
     <script>
-        // --- CONFIGURATION: YOUR LIVE GOOGLE SCRIPT URL ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVRdyl2hzyH_7AvDeuzP2AaUTw24tLtgyHeuxZVL1Hj6g_S4beKsEUZlQ261X-BvMJvw/exec"; 
+        // --- CONFIGURATION: YOUR NEW GOOGLE SCRIPT URL ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbTyRcCjK9ZT4Y26B-5CBE5EzhPO2kxfyqawqOrd-I90FSSuF_O8pRxONDEmQ_9KtD5BAQ/exec"; 
 
         /* --- 1. USER DATA STORAGE --- */
-        let userInfo = { name: "", age: "", place: "", phone: "" };
+        let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
 
         function validateAndStart() {
             const name = document.getElementById('inp-name').value;
+            const stuClass = document.getElementById('inp-class').value; // Get Class
             const age = document.getElementById('inp-age').value;
             const place = document.getElementById('inp-place').value;
             const phone = document.getElementById('inp-phone').value;
 
-            if(name === "" || age === "" || place === "" || phone === "") {
+            if(name === "" || stuClass === "" || age === "" || place === "" || phone === "") {
                 alert("Please fill in all details to start!");
                 return;
             }
-            userInfo = { name, age, place, phone };
+            userInfo = { name, class: stuClass, age, place, phone };
             document.getElementById('intro-popup').classList.add('hidden');
             document.getElementById('game-interface').classList.remove('hidden');
             loadScenario();
@@ -240,12 +242,13 @@
         }
 
         function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
-            // Update the status to show we are trying to save
+            // Update the status
             const statusBox = document.getElementById('save-status');
             statusBox.innerText = "Saving result...";
 
             const dataPayload = {
                 Name: userInfo.name,
+                Class: userInfo.class, // SEND NEW CLASS FIELD
                 Age: userInfo.age,
                 Place: userInfo.place,
                 Phone: userInfo.phone,
@@ -254,18 +257,15 @@
                 Scores_Detail: JSON.stringify(fullScores)
             };
 
-            // We use 'no-cors' mode to avoid CORS errors from Google Scripts
             fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors", 
                 headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify(dataPayload)
             }).then(() => {
-                // Success Message
                 statusBox.innerText = "✅ Result Saved Successfully!";
                 statusBox.style.color = "green";
             }).catch(err => {
-                // Error Message
                 console.error(err);
                 statusBox.innerText = "⚠️ Could not save data. Please check connection.";
                 statusBox.style.color = "red";
