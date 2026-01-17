@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Dream Career</title>
+    <style>
+        /* --- VISUAL STYLE (CSS) --- */
+        :root {
+            --primary: #ff9800; /* Orange */
+            --secondary: #4caf50; /* Green */
+            --bg: #e0f7fa;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
+        }
+
+        #game-container {
+            width: 100%; max-width: 500px; height: 95vh;
+            background: #ffffff; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow-y: auto; position: relative;
+            text-align: center; padding: 20px;
+            display: flex; flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        /* --- POPUP & FORM STYLES --- */
+        #intro-popup {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 100;
+            display: flex; flex-direction: column;
+            align-items: center;
+            padding: 20px; box-sizing: border-box;
+            overflow-y: auto; 
+        }
+
+        /* LOGO STYLE */
+        .brand-logo { 
+            width: 150px; /* Adjust size here */
+            height: auto; 
+            margin-bottom: 10px; 
+        }
+
+        .popup-title { font-size: 1.8rem; color: var(--primary); margin: 5px 0 20px 0; text-transform: uppercase; line-height: 1.2; }
+        .reg-form { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px; }
+        .input-field { padding: 12px 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; outline: none; }
+        .input-field:focus { border-color: var(--secondary); background: #f1f8e9; }
+        
+        .btn-start {
+            margin-top: 10px; padding: 15px 30px; font-size: 1.1rem;
+            background: var(--primary); color: white; border: none;
+            border-radius: 50px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 #e65100; transition: transform 0.1s;
+        }
+        .btn-start:active { transform: translateY(4px); box-shadow: none; }
+
+        /* --- GAME UI --- */
+        .landscape { min-height: 140px; background: linear-gradient(to bottom, #4fc3f7, #81c784); border-radius: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+        h2 { color: var(--text); font-size: 1.1rem; margin: 10px 0; line-height: 1.4; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-grow: 1; }
+        .option-card { background: #f1f8e9; border: 2px solid #c5e1a5; border-radius: 12px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .progress-track { background: #eee; height: 8px; width: 100%; border-radius: 5px; overflow: hidden; margin-bottom: 15px; }
+        #progress-bar { width: 0%; height: 100%; background: var(--secondary); transition: width 0.3s; }
+
+        /* --- RESULTS --- */
+        .details-box { background: #fff8e1; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #ffe0b2; }
+        .career-box { background: #e8f5e9; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #c8e6c9; }
+        .career-li { background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 5px; border-left: 4px solid var(--secondary); list-style: none; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="intro-popup">
+            <img src="logo.png" alt="PN Panicker Foundation" class="brand-logo" onerror="this.style.display='none'">
+            
+            <div class="foundation-badge" style="background:#333; color:white; padding:5px 10px; border-radius:15px; font-size:0.7rem;">PN Panicker Foundation Presents</div>
+            <h1 class="popup-title">FiND YOUR<br>DREAM CAREER</h1>
+            
+            <div class="reg-form">
+                <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
+                <input type="number" id="inp-age" class="input-field" placeholder="Age (e.g. 12)" required>
+                <input type="text" id="inp-place" class="input-field" placeholder="Place / District" required>
+                <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" required>
+                <button class="btn-start" onclick="validateAndStart()">Start Adventure 🚀</button>
+            </div>
+        </div>
+
+        <div id="game-interface" class="hidden">
+            <div class="progress-track"><div id="progress-bar"></div></div>
+            <div class="landscape"><span id="scene-emoji">🚩</span></div>
+            <h2 id="scenario-text">Loading...</h2>
+            <div class="options-grid" id="options-container"></div>
+        </div>
+
+        <div id="screen-result" class="hidden">
+            <h2 style="color: var(--secondary); margin: 0; font-size: 1rem;">Analysis Complete!</h2>
+            <div class="landscape" style="min-height: 90px; background: #fff; margin-bottom: 5px;">
+                <span id="result-emoji" style="font-size: 3.5rem;">🏆</span>
+            </div>
+            <h1 id="result-title" style="color: var(--primary); font-size: 1.4rem; text-transform: uppercase; margin: 5px 0;">...</h1>
+            
+            <div class="details-box">
+                <strong style="color: #e65100;">⚡ Your Personality:</strong>
+                <div id="traits-list" style="margin-top:10px; font-size:0.95rem; color:#555;"></div>
+            </div>
+
+            <div class="career-box">
+                <strong style="color: #2e7d32;">🚀 Top 5 Future Careers:</strong>
+                <ul id="career-list" style="padding:0; margin-top:10px;"></ul>
+            </div>
+            
+            <div id="save-status" style="font-size:0.8rem; color:#888; margin-bottom:10px; min-height: 20px;"></div>
+            
+            <button class="btn-start" onclick="location.reload()" style="font-size: 0.9rem; padding: 10px 20px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION: YOUR LIVE GOOGLE SCRIPT URL ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVRdyl2hzyH_7AvDeuzP2AaUTw24tLtgyHeuxZVL1Hj6g_S4beKsEUZlQ261X-BvMJvw/exec"; 
+
+        /* --- 1. USER DATA STORAGE --- */
+        let userInfo = { name: "", age: "", place: "", phone: "" };
+
+        function validateAndStart() {
+            const name = document.getElementById('inp-name').value;
+            const age = document.getElementById('inp-age').value;
+            const place = document.getElementById('inp-place').value;
+            const phone = document.getElementById('inp-phone').value;
+
+            if(name === "" || age === "" || place === "" || phone === "") {
+                alert("Please fill in all details to start!");
+                return;
+            }
+            userInfo = { name, age, place, phone };
+            document.getElementById('intro-popup').classList.add('hidden');
+            document.getElementById('game-interface').classList.remove('hidden');
+            loadScenario();
+        }
+
+        /* --- 2. GAME CONTENT --- */
+        const scenarios = [
+            { text: "1. Village Center: What do you build first?", emoji: "🏗️", options: [ { label: "Machine Shop", type: "Realistic", icon: "🔧" }, { label: "Art School", type: "Artistic", icon: "🎨" }, { label: "Market", type: "Enterprising", icon: "🏪" }, { label: "Clinic", type: "Social", icon: "🩺" } ] },
+            { text: "2. The bridge is broken! You...", emoji: "🌉", options: [ { label: "Build a raft", type: "Realistic", icon: "🪵" }, { label: "Call for help", type: "Social", icon: "📢" }, { label: "Design a new one", type: "Artistic", icon: "📐" }, { label: "Hire a boat", type: "Enterprising", icon: "🚤" } ] },
+            { text: "3. Onam Festival role?", emoji: "🌸", options: [ { label: "Pookalam Design", type: "Artistic", icon: "🌺" }, { label: "Serving Food", type: "Social", icon: "🍛" }, { label: "Stage Setup", type: "Realistic", icon: "🔨" }, { label: "Event Organizer", type: "Enterprising", icon: "🎤" } ] },
+            { text: "4. Tourists need help. You...", emoji: "📸", options: [ { label: "Drive the Jeep", type: "Realistic", icon: "🚙" }, { label: "Tell Stories", type: "Social", icon: "🗣️" }, { label: "Sell Souvenirs", type: "Enterprising", icon: "💰" }, { label: "Perform Dance", type: "Artistic", icon: "💃" } ] },
+            { text: "5. Lost Elephant! You...", emoji: "🐘", options: [ { label: "Build Fence", type: "Realistic", icon: "🚧" }, { label: "Comfort It", type: "Social", icon: "❤️" }, { label: "Take Photos", type: "Artistic", icon: "📷" }, { label: "Lead Rescue", type: "Enterprising", icon: "🚩" } ] },
+            { text: "6. Coconut Harvest. You...", emoji: "🥥", options: [ { label: "Climb & Pluck", type: "Realistic", icon: "🧗" }, { label: "Count & Sell", type: "Enterprising", icon: "📝" }, { label: "Make Crafts", type: "Artistic", icon: "🥣" }, { label: "Share with All", type: "Social", icon: "🤝" } ] },
+            { text: "7. School Club. You start...", emoji: "🏫", options: [ { label: "Robotics", type: "Realistic", icon: "🤖" }, { label: "Drama/Music", type: "Artistic", icon: "🎭" }, { label: "Debate Team", type: "Enterprising", icon: "⚖️" }, { label: "Charity Club", type: "Social", icon: "🌿" } ] },
+            { text: "8. Plastic on beach. You...", emoji: "🏖️", options: [ { label: "Make Posters", type: "Artistic", icon: "🖌️" }, { label: "Pick it Up", type: "Realistic", icon: "🧤" }, { label: "Recycling Biz", type: "Enterprising", icon: "♻️" }, { label: "Clean Together", type: "Social", icon: "👯" } ] },
+            { text: "9. Boat Race Role?", emoji: "🚣", options: [ { label: "The Captain", type: "Enterprising", icon: "📢" }, { label: "The Rower", type: "Realistic", icon: "💪" }, { label: "Boat Decorator", type: "Artistic", icon: "✨" }, { label: "Cheerleader", type: "Social", icon: "🎉" } ] },
+            { text: "10. Gift for Village?", emoji: "🎁", options: [ { label: "Library", type: "Social", icon: "📚" }, { label: "Solar Plant", type: "Realistic", icon: "☀️" }, { label: "Cinema", type: "Artistic", icon: "🎬" }, { label: "Mall", type: "Enterprising", icon: "🛍️" } ] },
+            // RAPID FIRE
+            { text: "11. Pick an object!", emoji: "⚡", options: [ { label: "Microscope", type: "Realistic", icon: "🔬" }, { label: "Paintbrush", type: "Artistic", icon: "🖌️" }, { label: "Megaphone", type: "Enterprising", icon: "📣" }, { label: "First Aid Kit", type: "Social", icon: "🩹" } ] },
+            { text: "12. Pick a workspace!", emoji: "⚡", options: [ { label: "Garage/Lab", type: "Realistic", icon: "⚙️" }, { label: "Studio", type: "Artistic", icon: "🎻" }, { label: "Office/Boardroom", type: "Enterprising", icon: "💼" }, { label: "Hospital/School", type: "Social", icon: "🏥" } ] },
+            { text: "13. Pick a hobby!", emoji: "⚡", options: [ { label: "Fixing Bikes", type: "Realistic", icon: "🚲" }, { label: "Writing Songs", type: "Artistic", icon: "📝" }, { label: "Trading Cards", type: "Enterprising", icon: "🃏" }, { label: "Teaching Kids", type: "Social", icon: "👶" } ] },
+            { text: "14. Pick a hero!", emoji: "⚡", options: [ { label: "Inventor", type: "Realistic", icon: "💡" }, { label: "Artist", type: "Artistic", icon: "🎭" }, { label: "CEO", type: "Enterprising", icon: "👔" }, { label: "Activist", type: "Social", icon: "🕊️" } ] },
+            { text: "15. Final Choice!", emoji: "🌟", options: [ { label: "Tools", type: "Realistic", icon: "🔨" }, { label: "Colors", type: "Artistic", icon: "🌈" }, { label: "Money", type: "Enterprising", icon: "💰" }, { label: "People", type: "Social", icon: "❤️" } ] }
+        ];
+
+        let currentStep = 0;
+        let scores = { Realistic: 0, Artistic: 0, Enterprising: 0, Social: 0 };
+
+        function loadScenario() {
+            if (currentStep >= scenarios.length) { showResults(); return; }
+            const data = scenarios[currentStep];
+            document.getElementById('scenario-text').innerText = data.text;
+            document.getElementById('scene-emoji').innerText = data.emoji;
+            let shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'option-card';
+                btn.innerHTML = `<span style="font-size:1.5rem">${opt.icon}</span><strong style="margin-top:5px">${opt.label}</strong>`;
+                btn.onclick = () => handleChoice(opt.type);
+                container.appendChild(btn);
+            });
+            document.getElementById('progress-bar').style.width = ((currentStep) / scenarios.length) * 100 + "%";
+        }
+
+        function handleChoice(type) { scores[type]++; currentStep++; loadScenario(); }
+
+        /* --- 3. RESULTS & DATA SUBMISSION --- */
+        function showResults() {
+            document.getElementById('game-interface').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            let topTrait = sortedScores[0][0];
+            let secondTrait = sortedScores[1][0];
+
+            const hybridData = {
+                "Realistic-Artistic": { title: "The Design Engineer 📐", career: ["Architect", "Product Designer", "Game Developer", "Animator", "Landscape Designer"] },
+                "Realistic-Social": { title: "The Medical Healer 🩺", career: ["Surgeon", "Veterinarian", "Sports Coach", "Physiotherapist", "Firefighter"] },
+                "Realistic-Enterprising": { title: "The Builder Captain 🏗️", career: ["Pilot", "Civil Engineer", "Factory Manager", "Farm Owner", "Logistics Head"] },
+                "Artistic-Realistic": { title: "The Digital Creator 💻", career: ["UX/UI Designer", "Sound Engineer", "Photographer", "Fashion Designer", "Chef"] },
+                "Artistic-Social": { title: "The Inspiring Teacher 🎭", career: ["Drama Teacher", "Art Therapist", "Journalist", "Travel Guide", "Counselor"] },
+                "Artistic-Enterprising": { title: "The Media Star 🎬", career: ["Film Director", "Advertising Head", "Event Planner", "Social Media Influencer", "Brand Manager"] },
+                "Social-Realistic": { title: "The Hands-on Helper 🚑", career: ["Nurse", "Police Officer", "Paramedic", "Agriculture Officer", "Zoologist"] },
+                "Social-Artistic": { title: "The Storyteller 🗣️", career: ["Psychologist", "Speech Therapist", "Librarian", "Author/Writer", "Primary Teacher"] },
+                "Social-Enterprising": { title: "The Team Leader 🤝", career: ["School Principal", "HR Manager", "Hotel Manager", "NGO Leader", "TV Host"] },
+                "Enterprising-Realistic": { title: "The Tech Boss 🚀", career: ["Startup Founder", "Stock Trader", "Real Estate Developer", "Tech CEO", "Bank Manager"] },
+                "Enterprising-Artistic": { title: "The Visionary 💡", career: ["Marketing Director", "Creative Director", "Fashion Buyer", "Talent Agent", "Publicist"] },
+                "Enterprising-Social": { title: "The Public Leader 🏛️", career: ["Politician", "Lawyer", "Social Entrepreneur", "Hospital Admin", "Diplomat"] }
+            };
+
+            let key = topTrait + "-" + secondTrait;
+            let profile = hybridData[key] || { title: "The Master " + topTrait, career: ["Specialist in " + topTrait, "Researcher", "Consultant", "Analyst", "Innovator"] };
+
+            document.getElementById('result-title').innerText = profile.title;
+            
+            const traitSentences = {
+                "Realistic": "You like using tools, fixing broken things, and understanding how machines work.",
+                "Artistic": "You have a colorful imagination and love to create new things or ideas.",
+                "Social": "You are a kind friend who loves helping people and solving their problems.",
+                "Enterprising": "You are brave, confident, and you like leading your team to success."
+            };
+
+            document.getElementById('traits-list').innerHTML = `
+                <div style="margin-bottom:5px">✅ ${traitSentences[topTrait]}</div>
+                <div>✨ ${traitSentences[secondTrait]}</div>
+            `;
+            
+            const cList = document.getElementById('career-list');
+            cList.innerHTML = "";
+            profile.career.forEach(c => { cList.innerHTML += `<li class="career-li">${c}</li>`; });
+
+            // TRIGGER DATA SAVE
+            sendDataToGoogleScript(profile.title, topTrait, scores);
+        }
+
+        function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
+            // Update the status to show we are trying to save
+            const statusBox = document.getElementById('save-status');
+            statusBox.innerText = "Saving result...";
+
+            const dataPayload = {
+                Name: userInfo.name,
+                Age: userInfo.age,
+                Place: userInfo.place,
+                Phone: userInfo.phone,
+                Result: resultTitle,
+                Top_Score: topTrait,
+                Scores_Detail: JSON.stringify(fullScores)
+            };
+
+            // We use 'no-cors' mode to avoid CORS errors from Google Scripts
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(dataPayload)
+            }).then(() => {
+                // Success Message
+                statusBox.innerText = "✅ Result Saved Successfully!";
+                statusBox.style.color = "green";
+            }).catch(err => {
+                // Error Message
+                console.error(err);
+                statusBox.innerText = "⚠️ Could not save data. Please check connection.";
+                statusBox.style.color = "red";
+            });
+        }
+    </script>
+</body>
+</html>
