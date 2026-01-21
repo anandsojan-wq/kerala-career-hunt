@@ -177,10 +177,7 @@
 
     <script>
         // --- 0. SUPABASE CONFIGURATION ---
-        // Your Credentials:
         const SUPABASE_URL = "https://vtvpfpxofxgneitksxpf.supabase.co";
-        // Note: Please ensure this matches the 'anon' / 'public' key exactly. 
-        // Supabase keys typically start with "ey..." and are long. If your key is short, please double check.
         const SUPABASE_ANON_KEY = "B1NNmJk8FACRw3Xghd_A_MpGSplI6"; 
 
         // Initialize Client
@@ -199,22 +196,36 @@
             ml: { back: "⬅ പിന്നോട്ട്", analysis: "വിശകലനം പൂർത്തിയായി!", personality: "⚡ നിങ്ങളുടെ വ്യക്തിത്വം:", careers: "🚀 മികച്ച 5 ജോലികൾ:", replay: "വീണ്ടും കളിക്കാം", saving: "സൂക്ഷിക്കുന്നു...", saved: "✅ വിജയിച്ചു!", error: "⚠️ കണക്ഷൻ തകരാർ" }
         };
 
-        // --- 2. SMOOTH LOADING ---
+        // --- 2. SMOOTH LOADING (FIXED) ---
         window.addEventListener('load', () => {
             const logo = document.getElementById('main-logo');
             const introPopup = document.getElementById('intro-popup');
             const content = document.getElementById('intro-content');
             const loader = document.getElementById('initial-loader');
 
+            let isLoaded = false;
+
             const revealUI = () => {
+                if (isLoaded) return; // Prevent double trigger
+                isLoaded = true;
+                
                 loader.style.display = 'none';
                 introPopup.style.opacity = 1; 
                 content.classList.remove('hidden');
                 content.classList.add('fade-in');
             };
 
-            if (logo.complete) revealUI();
-            else logo.onload = revealUI;
+            // 1. If image loads normally
+            if (logo.complete) {
+                revealUI();
+            } else {
+                logo.onload = revealUI;
+                // If image fails to load (e.g. 404), reveal UI anyway!
+                logo.onerror = revealUI;
+            }
+
+            // 2. Safety Timer: Force show after 2.5 seconds no matter what
+            setTimeout(revealUI, 2500);
         });
 
         // --- 3. START SEQUENCE ---
@@ -356,7 +367,6 @@
 
             try {
                 // IMPORTANT: The names on the LEFT (student_name, etc.) must match your SUPABASE TABLE columns.
-                // The values on the RIGHT (userInfo.name) come from your form inputs.
                 const { data, error } = await supabase
                     .from('career_results')
                     .insert([
