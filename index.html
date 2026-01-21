@@ -44,18 +44,16 @@
         }
 
         /* --- POPUPS --- */
+        /* Changed: Default display is flex, no hidden/opacity tricks initially */
         #intro-popup, #lang-popup {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 100;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             padding: 20px; box-sizing: border-box;
-            transition: opacity 0.5s ease;
         }
         
-        #intro-popup.hidden-anim, #lang-popup.hidden-anim {
-            opacity: 0; pointer-events: none;
-        }
+        .hidden { display: none !important; }
 
         /* LOGO STYLE */
         .brand-logo { width: 280px; height: auto; margin-bottom: 10px; display: block; }
@@ -100,29 +98,17 @@
         .details-box { background: #fff8e1; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #ffe0b2; }
         .career-box { background: #e8f5e9; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #c8e6c9; }
         .career-li { background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 5px; border-left: 4px solid var(--secondary); list-style: none; }
-        .hidden { display: none !important; }
         
-        /* Loading Spinner */
-        .loader-spinner {
-            border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
-            border-radius: 50%; width: 40px; height: 40px;
-            animation: spin 1s linear infinite; margin: 50px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* REMOVED LOADER STYLES */
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <div id="initial-loader" style="position:absolute; top:40%; left:0; width:100%; text-align:center; z-index: 150;">
-            <div class="loader-spinner"></div>
-            <p style="color:#777;">Loading Adventure...</p>
-        </div>
-
-        <div id="intro-popup" style="opacity: 0;"> 
+        <div id="intro-popup"> 
             <img src="logo.png" alt="ICM Education" class="brand-logo" id="main-logo" onerror="this.src='https://placehold.co/300x100?text=ICM+Logo'">
             
-            <div id="intro-content" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div id="intro-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 <h1 class="popup-title">Find Your<br>Dream Career</h1>
                 <div class="reg-form">
                     <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
@@ -180,8 +166,14 @@
         const SUPABASE_URL = "https://vtvpfpxofxgneitksxpf.supabase.co";
         const SUPABASE_ANON_KEY = "B1NNmJk8FACRw3Xghd_A_MpGSplI6"; 
 
-        // Initialize Client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Client safely
+        let supabase = null;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log("Supabase initialized");
+        } catch (e) {
+            console.error("Supabase failed to load:", e);
+        }
 
         // --- GAME STATE ---
         let userInfo = {};
@@ -196,39 +188,7 @@
             ml: { back: "⬅ പിന്നോട്ട്", analysis: "വിശകലനം പൂർത്തിയായി!", personality: "⚡ നിങ്ങളുടെ വ്യക്തിത്വം:", careers: "🚀 മികച്ച 5 ജോലികൾ:", replay: "വീണ്ടും കളിക്കാം", saving: "സൂക്ഷിക്കുന്നു...", saved: "✅ വിജയിച്ചു!", error: "⚠️ കണക്ഷൻ തകരാർ" }
         };
 
-        // --- 2. SMOOTH LOADING (FIXED) ---
-        window.addEventListener('load', () => {
-            const logo = document.getElementById('main-logo');
-            const introPopup = document.getElementById('intro-popup');
-            const content = document.getElementById('intro-content');
-            const loader = document.getElementById('initial-loader');
-
-            let isLoaded = false;
-
-            const revealUI = () => {
-                if (isLoaded) return; // Prevent double trigger
-                isLoaded = true;
-                
-                loader.style.display = 'none';
-                introPopup.style.opacity = 1; 
-                content.classList.remove('hidden');
-                content.classList.add('fade-in');
-            };
-
-            // 1. If image loads normally
-            if (logo.complete) {
-                revealUI();
-            } else {
-                logo.onload = revealUI;
-                // If image fails to load (e.g. 404), reveal UI anyway!
-                logo.onerror = revealUI;
-            }
-
-            // 2. Safety Timer: Force show after 2.5 seconds no matter what
-            setTimeout(revealUI, 2500);
-        });
-
-        // --- 3. START SEQUENCE ---
+        // --- 2. START SEQUENCE ---
         function validateForm() {
             const name = document.getElementById('inp-name').value;
             const stuClass = document.getElementById('inp-class').value;
@@ -256,7 +216,7 @@
             loadScenario();
         }
 
-        /* --- 4. BILINGUAL CONTENT --- */
+        /* --- 3. BILINGUAL CONTENT --- */
         const scenarios = [
             { text: "1. Village Center: What do you build first?", text_ml: "1. ഗ്രാമ കേന്ദ്രം: നിങ്ങൾ ആദ്യം എന്ത് നിർമ്മിക്കും?", emoji: "🏗️", options: [ { label: "Machine Shop", label_ml: "മെഷീൻ ഷോപ്പ്", type: "Realistic", icon: "🔧" }, { label: "Art School", label_ml: "ആർട്ട് സ്കൂൾ", type: "Artistic", icon: "🎨" }, { label: "Market", label_ml: "മാർക്കറ്റ്", type: "Enterprising", icon: "🏪" }, { label: "Clinic", label_ml: "ക്ലിനിക്ക്", type: "Social", icon: "🩺" } ] },
             { text: "2. The bridge is broken! You...", text_ml: "2. പാലം തകർന്നു! നിങ്ങൾ എന്ത് ചെയ്യും?", emoji: "🌉", options: [ { label: "Build a raft", label_ml: "ചങ്ങാടം ഉണ്ടാക്കും", type: "Realistic", icon: "🪵" }, { label: "Call for help", label_ml: "സഹായം ചോദിക്കും", type: "Social", icon: "📢" }, { label: "Design a new one", label_ml: "പുതിയ പ്ലാൻ വരയ്ക്കും", type: "Artistic", icon: "📐" }, { label: "Hire a boat", label_ml: "ബോട്ട് വാടകയ്ക്ക് എടുക്കും", type: "Enterprising", icon: "🚤" } ] },
@@ -275,7 +235,7 @@
             { text: "15. Final Choice!", text_ml: "15. അവസാന ചോദ്യം!", emoji: "🌟", options: [ { label: "Tools", label_ml: "ഉപകരണങ്ങൾ", type: "Realistic", icon: "🔨" }, { label: "Colors", label_ml: "നിറങ്ങൾ", type: "Artistic", icon: "🌈" }, { label: "Money", label_ml: "പണം", type: "Enterprising", icon: "💰" }, { label: "People", label_ml: "ആളുകൾ", type: "Social", icon: "❤️" } ] }
         ];
 
-        /* --- 5. GAME LOGIC --- */
+        /* --- 4. GAME LOGIC --- */
         function loadScenario() {
             if (currentStep >= scenarios.length) { showResults(); return; }
             
@@ -312,7 +272,7 @@
             loadScenario();
         }
 
-        /* --- 6. RESULTS LOGIC --- */
+        /* --- 5. RESULTS LOGIC --- */
         function showResults() {
             document.getElementById('game-interface').classList.add('hidden');
             const resScreen = document.getElementById('screen-result');
@@ -365,8 +325,14 @@
             const statusBox = document.getElementById('save-status');
             statusBox.innerText = uiText[currentLang].saving;
 
+            if (!supabase) {
+                statusBox.innerText = "Error: Database not loaded.";
+                statusBox.style.color = "red";
+                alert("Critical Error: Supabase could not load. Check your internet connection or ad-blocker.");
+                return;
+            }
+
             try {
-                // IMPORTANT: The names on the LEFT (student_name, etc.) must match your SUPABASE TABLE columns.
                 const { data, error } = await supabase
                     .from('career_results')
                     .insert([
@@ -386,15 +352,13 @@
 
                 statusBox.innerText = uiText[currentLang].saved;
                 statusBox.style.color = "green";
-                
-                // Debugging Success
                 console.log("✅ Success! Data saved:", data);
 
             } catch (err) {
                 console.error("❌ Supabase Error Details:", err);
                 statusBox.innerText = uiText[currentLang].error + " (Check Console)";
                 statusBox.style.color = "red";
-                alert("Database Error: " + err.message + "\nPlease check the Console (F12) for more details.");
+                alert("Database Error: " + err.message);
             }
         }
     </script>
