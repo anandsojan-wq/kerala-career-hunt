@@ -339,7 +339,9 @@
         }
 
         // --- 5. CONFIGURATION & DATA ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvle82cRmfjx7XBwV_6LwyoWl-pVWx8rlJndWczaAQrLgTGw/exec"; 
+        // *** UPDATED URL HERE ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvIe82cRmfjx7XBwV_6LwyoWI-pVWx8rIJndWczaAQrLgTGw/exec"; 
+        
         let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
 
         // --- UPDATED VALIDATION LOGIC ---
@@ -690,27 +692,37 @@
             sendDataToGoogleScript(profile.title.en, topTrait, scores);
         }
 
+        // --- UPDATED SEND DATA FUNCTION ---
         function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
             const statusBox = document.getElementById('save-status');
             statusBox.innerText = currentLang === 'ml' ? "സേവ് ചെയ്യുന്നു..." : "Saving result...";
 
+            // 1. Prepare Data Object
             const dataPayload = {
-                Name: userInfo.name,
-                Class: userInfo.class, 
-                Age: userInfo.age,
-                Place: userInfo.place,
-                Phone: userInfo.phone,
-                Result: resultTitle,
-                Top_Score: topTrait,
-                Scores_Detail: JSON.stringify(fullScores),
-                Language: currentLang
+                "Name": userInfo.name,
+                "Class": userInfo.class, 
+                "Age": userInfo.age,
+                "Place": userInfo.place,
+                "Phone": userInfo.phone,
+                "Result": resultTitle,
+                "Top_Score": topTrait,
+                "Scores_Detail": JSON.stringify(fullScores), 
+                "Language": currentLang
             };
+
+            // 2. CONVERT TO URL SEARCH PARAMS (Fixed for Apps Script)
+            const formData = new URLSearchParams();
+            for (const key in dataPayload) {
+                formData.append(key, dataPayload[key]);
+            }
 
             fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors", 
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify(dataPayload)
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString()
             }).then(() => {
                 statusBox.innerText = currentLang === 'ml' ? "✅ വിജയിച്ചു!" : "✅ Result Saved Successfully!";
                 statusBox.style.color = "green";
