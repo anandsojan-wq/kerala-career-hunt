@@ -50,7 +50,6 @@
             align-items: center;
             padding: 20px; box-sizing: border-box;
             overflow-y: auto;
-            /* Hidden by default until logo loads */
             opacity: 0; 
             transition: opacity 0.5s ease;
         }
@@ -76,6 +75,27 @@
         }
         .btn-start:active { transform: translateY(4px); box-shadow: none; }
 
+        /* LANGUAGE SELECTION STYLES */
+        .lang-btn {
+            background: white; border: 2px solid var(--primary); color: var(--primary);
+            padding: 15px 30px; margin: 10px; border-radius: 15px;
+            font-size: 1.2rem; cursor: pointer; font-weight: bold; width: 80%;
+            transition: 0.3s;
+        }
+        .lang-btn:hover { background: var(--primary); color: white; }
+
+        /* ABOUT MODAL STYLES */
+        .btn-about {
+            background: none; border: none; color: #777; 
+            text-decoration: underline; cursor: pointer; margin-top: 15px; font-size: 0.9rem;
+        }
+        #about-modal {
+            background: #fff8e1; border: 2px solid #ffcc80; border-radius: 15px;
+            padding: 15px; margin-top: 15px; text-align: left; font-size: 0.9rem;
+            display: none; color: #5d4037;
+        }
+        #about-modal h3 { margin-top: 0; color: #e65100; }
+
         /* --- GAME UI --- */
         .nav-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -98,16 +118,13 @@
         .option-card { background: #f1f8e9; border: 2px solid #c5e1a5; border-radius: 12px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.1s, background 0.1s; }
         .option-card:active { transform: scale(0.95); background: #dcedc8; }
 
-        .progress-track { background: #eee; height: 8px; width: 100%; border-radius: 5px; overflow: hidden; margin-bottom: 5px; flex-grow: 1; margin-left: 10px; }
-        #progress-bar { width: 0%; height: 100%; background: var(--secondary); transition: width 0.3s; }
-
         /* --- RESULTS --- */
         .details-box { background: #fff8e1; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #ffe0b2; }
         .career-box { background: #e8f5e9; border-radius: 10px; padding: 15px; margin: 10px 0; text-align: left; border: 2px solid #c8e6c9; }
         .career-li { background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 5px; border-left: 4px solid var(--secondary); list-style: none; }
         .hidden { display: none !important; }
         
-        /* Loading Spinner for Image */
+        /* Loading Spinner */
         .loader-spinner {
             border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
             border-radius: 50%; width: 40px; height: 40px;
@@ -127,8 +144,14 @@
         <div id="intro-popup">
             <img src="logo.png" alt="ICM Education" class="brand-logo" id="main-logo" onerror="this.src='https://placehold.co/300x100?text=ICM+Logo'">
             
-            <div id="intro-content" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <h1 class="popup-title">FiND YOUR<br>DREAM CAREER</h1>
+            <div id="language-screen" class="hidden" style="width: 100%; flex-direction: column; align-items: center;">
+                <h2 style="color:var(--text); margin-bottom: 20px;">Select Language / ഭാഷ തിരഞ്ഞെടുക്കുക</h2>
+                <button class="lang-btn" onclick="selectLanguage('en')">English</button>
+                <button class="lang-btn" onclick="selectLanguage('ml')">മലയാളം</button>
+            </div>
+
+            <div id="form-screen" class="hidden" style="width: 100%; flex-direction: column; align-items: center;">
+                <h1 class="popup-title" id="lbl-title">FIND YOUR<br>DREAM CAREER</h1>
                 
                 <div class="reg-form">
                     <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
@@ -137,7 +160,17 @@
                     <input type="text" id="inp-place" class="input-field" placeholder="Place" required>
                     <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" required>
                     
-                    <button class="btn-start" onclick="validateAndStart()">Start Adventure 🚀</button>
+                    <button class="btn-start" id="btn-start" onclick="validateAndStart()">Start Adventure 🚀</button>
+                </div>
+
+                <button class="btn-about" id="btn-about-toggle" onclick="toggleAbout()">About this Aptitude Quiz ℹ️</button>
+                
+                <div id="about-modal">
+                    <h3 id="about-head">The Science: Holland Code (RIASEC)</h3>
+                    <p id="about-body">
+                        Imagine your personality is a puzzle. This game finds where you fit! It checks if you like <b>Doing</b> (Realistic), <b>Creating</b> (Artistic), <b>Helping</b> (Social), or <b>Leading</b> (Enterprising).
+                    </p>
+                    <button onclick="toggleAbout()" style="background:var(--primary); color:white; border:none; padding:5px 10px; border-radius:5px; margin-top:5px; cursor:pointer; font-size:0.8rem;">Close</button>
                 </div>
             </div>
         </div>
@@ -177,33 +210,91 @@
     </div>
 
     <script>
-        // --- 1. SMOOTH LOADING LOGIC ---
+        // --- 1. LOCALIZATION DATA (INTRO) ---
+        const translations = {
+            en: {
+                title: "FIND YOUR<br>DREAM CAREER",
+                placeholders: {
+                    name: "Student Name",
+                    class: "Class / Grade",
+                    age: "Age",
+                    place: "Place",
+                    phone: "Parent's Phone Number"
+                },
+                btnStart: "Start Adventure 🚀",
+                btnAbout: "About this Aptitude Quiz ℹ️",
+                aboutHead: "The Science: Holland Code (RIASEC)",
+                aboutBody: "Imagine your personality is a puzzle. This game finds where you fit! It checks if you like <b>Doing</b> (Realistic), <b>Creating</b> (Artistic), <b>Helping</b> (Social), or <b>Leading</b> (Enterprising)."
+            },
+            ml: {
+                title: "നിങ്ങളുടെ<br>സ്വപ്ന ജോലി കണ്ടെത്തൂ",
+                placeholders: {
+                    name: "വിദ്യാർത്ഥിയുടെ പേര്",
+                    class: "ക്ലാസ്",
+                    age: "വയസ്സ്",
+                    place: "സ്ഥലം",
+                    phone: "രക്ഷിതാവിൻ്റെ ഫോൺ നമ്പർ"
+                },
+                btnStart: "തുടങ്ങാം 🚀",
+                btnAbout: "ഈ ക്വിസിനെക്കുറിച്ച് കൂടുതൽ അറിയാം ℹ️",
+                aboutHead: "എന്താണ് ഹോളണ്ട് കോഡ് (RIASEC)?",
+                aboutBody: "നിങ്ങളുടെ വ്യക്തിത്വം ഒരു പസിൽ പോലെയാണെന്ന് സങ്കൽപ്പിക്കുക. ഈ ഗെയിം നിങ്ങൾക്ക് അനുയോജ്യമായത് എന്താണെന്ന് കണ്ടെത്തുന്നു! നിങ്ങൾക്ക് <b>പ്രവർത്തിക്കാൻ</b> (Realistic), <b>സൃഷ്ടിക്കാൻ</b> (Artistic), <b>സഹായിക്കാൻ</b> (Social), അതോ <b>നയിക്കാൻ</b> (Enterprising) ആണോ ഇഷ്ടം എന്ന് ഇത് പരിശോധിക്കുന്നു."
+            }
+        };
+
+        // Current Language (Default English)
+        let currentLang = 'en';
+
+        // --- 2. SMOOTH LOADING LOGIC ---
         window.addEventListener('load', () => {
             const logo = document.getElementById('main-logo');
             const introPopup = document.getElementById('intro-popup');
-            const content = document.getElementById('intro-content');
+            const langScreen = document.getElementById('language-screen');
             const loader = document.getElementById('initial-loader');
 
-            // Function to reveal UI
             const revealUI = () => {
-                loader.style.display = 'none'; // Hide spinner
-                introPopup.style.opacity = 1;  // Fade in container
-                content.classList.remove('hidden');
-                content.classList.add('fade-in'); // Trigger animation
+                loader.style.display = 'none';
+                introPopup.style.opacity = 1; 
+                // Show Language Screen first
+                langScreen.classList.remove('hidden');
+                langScreen.classList.add('fade-in');
             };
 
-            if (logo.complete) {
-                revealUI();
-            } else {
-                logo.onload = revealUI;
-            }
+            if (logo.complete) { revealUI(); } 
+            else { logo.onload = revealUI; }
         });
 
-        // --- 2. CONFIGURATION ---
-        // FIXED: Removed duplicate URL part
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvle82cRmfjx7XBwV_6LwyoWl-pVWx8rlJndWczaAQrLgTGw/exec"; 
+        // --- 3. LANGUAGE SELECTION HANDLER ---
+        function selectLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
 
-        /* --- 3. USER DATA STORAGE --- */
+            // Apply translations to Form
+            document.getElementById('lbl-title').innerHTML = t.title;
+            document.getElementById('inp-name').placeholder = t.placeholders.name;
+            document.getElementById('inp-class').placeholder = t.placeholders.class;
+            document.getElementById('inp-age').placeholder = t.placeholders.age;
+            document.getElementById('inp-place').placeholder = t.placeholders.place;
+            document.getElementById('inp-phone').placeholder = t.placeholders.phone;
+            document.getElementById('btn-start').innerText = t.btnStart;
+            document.getElementById('btn-about-toggle').innerText = t.btnAbout;
+            document.getElementById('about-head').innerText = t.aboutHead;
+            document.getElementById('about-body').innerHTML = t.aboutBody;
+
+            // Switch Screens
+            document.getElementById('language-screen').classList.add('hidden');
+            const formScreen = document.getElementById('form-screen');
+            formScreen.classList.remove('hidden');
+            formScreen.classList.add('fade-in');
+        }
+
+        function toggleAbout() {
+            const modal = document.getElementById('about-modal');
+            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // --- 4. CONFIGURATION & DATA ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvle82cRmfjx7XBwV_6LwyoWl-pVWx8rlJndWczaAQrLgTGw/exec"; 
         let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
 
         function validateAndStart() {
@@ -214,7 +305,7 @@
             const phone = document.getElementById('inp-phone').value;
 
             if(name === "" || stuClass === "" || age === "" || place === "" || phone === "") {
-                alert("Please fill in all details to start!");
+                alert(currentLang === 'ml' ? "ദയവായി എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക!" : "Please fill in all details to start!");
                 return;
             }
             userInfo = { name, class: stuClass, age, place, phone };
@@ -226,34 +317,168 @@
             loadScenario();
         }
 
-        /* --- 4. GAME CONTENT --- */
+        /* --- 5. GAME CONTENT (BILINGUAL) --- */
         const scenarios = [
-            { text: "1. Village Center: What do you build first?", emoji: "🏗️", options: [ { label: "Machine Shop", type: "Realistic", icon: "🔧" }, { label: "Art School", type: "Artistic", icon: "🎨" }, { label: "Market", type: "Enterprising", icon: "🏪" }, { label: "Clinic", type: "Social", icon: "🩺" } ] },
-            { text: "2. The bridge is broken! You...", emoji: "🌉", options: [ { label: "Build a raft", type: "Realistic", icon: "🪵" }, { label: "Call for help", type: "Social", icon: "📢" }, { label: "Design a new one", type: "Artistic", icon: "📐" }, { label: "Hire a boat", type: "Enterprising", icon: "🚤" } ] },
-            { text: "3. Onam Festival role?", emoji: "🌸", options: [ { label: "Pookalam Design", type: "Artistic", icon: "🌺" }, { label: "Serving Food", type: "Social", icon: "🍛" }, { label: "Stage Setup", type: "Realistic", icon: "🔨" }, { label: "Event Organizer", type: "Enterprising", icon: "🎤" } ] },
-            { text: "4. Tourists need help. You...", emoji: "📸", options: [ { label: "Drive the Jeep", type: "Realistic", icon: "🚙" }, { label: "Tell Stories", type: "Social", icon: "🗣️" }, { label: "Sell Souvenirs", type: "Enterprising", icon: "💰" }, { label: "Perform Dance", type: "Artistic", icon: "💃" } ] },
-            { text: "5. Lost Elephant! You...", emoji: "🐘", options: [ { label: "Build Fence", type: "Realistic", icon: "🚧" }, { label: "Comfort It", type: "Social", icon: "❤️" }, { label: "Take Photos", type: "Artistic", icon: "📷" }, { label: "Lead Rescue", type: "Enterprising", icon: "🚩" } ] },
-            { text: "6. Coconut Harvest. You...", emoji: "🥥", options: [ { label: "Climb & Pluck", type: "Realistic", icon: "🧗" }, { label: "Count & Sell", type: "Enterprising", icon: "📝" }, { label: "Make Crafts", type: "Artistic", icon: "🥣" }, { label: "Share with All", type: "Social", icon: "🤝" } ] },
-            { text: "7. School Club. You start...", emoji: "🏫", options: [ { label: "Robotics", type: "Realistic", icon: "🤖" }, { label: "Drama/Music", type: "Artistic", icon: "🎭" }, { label: "Debate Team", type: "Enterprising", icon: "⚖️" }, { label: "Charity Club", type: "Social", icon: "🌿" } ] },
-            { text: "8. Plastic on beach. You...", emoji: "🏖️", options: [ { label: "Make Posters", type: "Artistic", icon: "🖌️" }, { label: "Pick it Up", type: "Realistic", icon: "🧤" }, { label: "Recycling Biz", type: "Enterprising", icon: "♻️" }, { label: "Clean Together", type: "Social", icon: "👯" } ] },
-            { text: "9. Boat Race Role?", emoji: "🚣", options: [ { label: "The Captain", type: "Enterprising", icon: "📢" }, { label: "The Rower", type: "Realistic", icon: "💪" }, { label: "Boat Decorator", type: "Artistic", icon: "✨" }, { label: "Cheerleader", type: "Social", icon: "🎉" } ] },
-            { text: "10. Gift for Village?", emoji: "🎁", options: [ { label: "Library", type: "Social", icon: "📚" }, { label: "Solar Plant", type: "Realistic", icon: "☀️" }, { label: "Cinema", type: "Artistic", icon: "🎬" }, { label: "Mall", type: "Enterprising", icon: "🛍️" } ] },
+            { 
+                text: { en: "1. Village Center: What do you build first?", ml: "1. ഗ്രാമ കേന്ദ്രം: നിങ്ങൾ ആദ്യം എന്ത് നിർമ്മിക്കും?" }, 
+                emoji: "🏗️", 
+                options: [ 
+                    { label: { en: "Machine Shop", ml: "വർക്ക്ഷോപ്പ്" }, type: "Realistic", icon: "🔧" }, 
+                    { label: { en: "Art School", ml: "കലാ വിദ്യാലയം" }, type: "Artistic", icon: "🎨" }, 
+                    { label: { en: "Market", ml: "ചന്ത (Market)" }, type: "Enterprising", icon: "🏪" }, 
+                    { label: { en: "Clinic", ml: "ആശുപത്രി" }, type: "Social", icon: "🩺" } 
+                ] 
+            },
+            { 
+                text: { en: "2. The bridge is broken! You...", ml: "2. പാലം തകർന്നു! നിങ്ങൾ എന്ത് ചെയ്യും?" }, 
+                emoji: "🌉", 
+                options: [ 
+                    { label: { en: "Build a raft", ml: "ചങ്ങാടം ഉണ്ടാക്കും" }, type: "Realistic", icon: "🪵" }, 
+                    { label: { en: "Call for help", ml: "സഹായം വിളിക്കും" }, type: "Social", icon: "📢" }, 
+                    { label: { en: "Design a new one", ml: "പുതിയത് വരയ്ക്കും" }, type: "Artistic", icon: "📐" }, 
+                    { label: { en: "Hire a boat", ml: "ബോട്ട് വാടകയ്ക്ക് എടുക്കും" }, type: "Enterprising", icon: "🚤" } 
+                ] 
+            },
+            { 
+                text: { en: "3. Onam Festival role?", ml: "3. ഓണാഘോഷത്തിൽ നിങ്ങളുടെ റോൾ?" }, 
+                emoji: "🌸", 
+                options: [ 
+                    { label: { en: "Pookalam Design", ml: "പൂക്കളം ഡിസൈൻ" }, type: "Artistic", icon: "🌺" }, 
+                    { label: { en: "Serving Food", ml: "ഭക്ഷണം വിളമ്പൽ" }, type: "Social", icon: "🍛" }, 
+                    { label: { en: "Stage Setup", ml: "സ്റ്റേജ് നിർമ്മാണം" }, type: "Realistic", icon: "🔨" }, 
+                    { label: { en: "Event Organizer", ml: "സംഘാടകൻ" }, type: "Enterprising", icon: "🎤" } 
+                ] 
+            },
+            { 
+                text: { en: "4. Tourists need help. You...", ml: "4. ടൂറിസ്റ്റുകൾക്ക് വഴി തെറ്റി. നിങ്ങൾ..." }, 
+                emoji: "📸", 
+                options: [ 
+                    { label: { en: "Drive the Jeep", ml: "ജീപ്പ് ഓടിക്കും" }, type: "Realistic", icon: "🚙" }, 
+                    { label: { en: "Tell Stories", ml: "കഥകൾ പറയും" }, type: "Social", icon: "🗣️" }, 
+                    { label: { en: "Sell Souvenirs", ml: "സാധനങ്ങൾ വിൽക്കും" }, type: "Enterprising", icon: "💰" }, 
+                    { label: { en: "Perform Dance", ml: "നൃത്തം ചെയ്യും" }, type: "Artistic", icon: "💃" } 
+                ] 
+            },
+            { 
+                text: { en: "5. Lost Elephant! You...", ml: "5. ആന ഇടഞ്ഞു! നിങ്ങൾ എന്ത് ചെയ്യും?" }, 
+                emoji: "🐘", 
+                options: [ 
+                    { label: { en: "Build Fence", ml: "വേലി കെട്ടും" }, type: "Realistic", icon: "🚧" }, 
+                    { label: { en: "Comfort It", ml: "അതിനെ ശാന്തമാക്കും" }, type: "Social", icon: "❤️" }, 
+                    { label: { en: "Take Photos", ml: "ഫോട്ടോ എടുക്കും" }, type: "Artistic", icon: "📷" }, 
+                    { label: { en: "Lead Rescue", ml: "രക്ഷാപ്രവർത്തനം നയിക്കും" }, type: "Enterprising", icon: "🚩" } 
+                ] 
+            },
+            { 
+                text: { en: "6. Coconut Harvest. You...", ml: "6. തേങ്ങ വിളവെടുപ്പ്. നിങ്ങൾ..." }, 
+                emoji: "🥥", 
+                options: [ 
+                    { label: { en: "Climb & Pluck", ml: "കയറി പറിക്കും" }, type: "Realistic", icon: "🧗" }, 
+                    { label: { en: "Count & Sell", ml: "എണ്ണി വിൽക്കും" }, type: "Enterprising", icon: "📝" }, 
+                    { label: { en: "Make Crafts", ml: "ചിരട്ട കൊണ്ട് കലാരൂപം" }, type: "Artistic", icon: "🥣" }, 
+                    { label: { en: "Share with All", ml: "എല്ലാവർക്കും പങ്കിടും" }, type: "Social", icon: "🤝" } 
+                ] 
+            },
+            { 
+                text: { en: "7. School Club. You start...", ml: "7. സ്കൂൾ ക്ലബ്ബ്. നിങ്ങൾ തുടങ്ങുന്നത്..." }, 
+                emoji: "🏫", 
+                options: [ 
+                    { label: { en: "Robotics", ml: "റോബോട്ടിക്സ്" }, type: "Realistic", icon: "🤖" }, 
+                    { label: { en: "Drama/Music", ml: "നാടകം/ഗാനം" }, type: "Artistic", icon: "🎭" }, 
+                    { label: { en: "Debate Team", ml: "ഡിബേറ്റ് ടീം" }, type: "Enterprising", icon: "⚖️" }, 
+                    { label: { en: "Charity Club", ml: "സേവന സംഘം" }, type: "Social", icon: "🌿" } 
+                ] 
+            },
+            { 
+                text: { en: "8. Plastic on beach. You...", ml: "8. ബീച്ചിൽ പ്ലാസ്റ്റിക് മാലിന്യം..." }, 
+                emoji: "🏖️", 
+                options: [ 
+                    { label: { en: "Make Posters", ml: "പോസ്റ്റർ വരയ്ക്കും" }, type: "Artistic", icon: "🖌️" }, 
+                    { label: { en: "Pick it Up", ml: "പെറുക്കി മാറ്റും" }, type: "Realistic", icon: "🧤" }, 
+                    { label: { en: "Recycling Biz", ml: "റീസൈക്ലിംഗ് ബിസിനസ്" }, type: "Enterprising", icon: "♻️" }, 
+                    { label: { en: "Clean Together", ml: "കൂട്ടുകാരെ കൂട്ടി വൃത്തിയാക്കും" }, type: "Social", icon: "👯" } 
+                ] 
+            },
+            { 
+                text: { en: "9. Boat Race Role?", ml: "9. വള്ളംകളിയിൽ നിങ്ങളുടെ റോൾ?" }, 
+                emoji: "🚣", 
+                options: [ 
+                    { label: { en: "The Captain", ml: "ക്യാപ്റ്റൻ (നയിക്കുന്നയാൾ)" }, type: "Enterprising", icon: "📢" }, 
+                    { label: { en: "The Rower", ml: "തുഴച്ചിലുകാരൻ" }, type: "Realistic", icon: "💪" }, 
+                    { label: { en: "Boat Decorator", ml: "വള്ളം അലങ്കരിക്കുന്നയാൾ" }, type: "Artistic", icon: "✨" }, 
+                    { label: { en: "Cheerleader", ml: "ആവേശം നൽകുന്നയാൾ" }, type: "Social", icon: "🎉" } 
+                ] 
+            },
+            { 
+                text: { en: "10. Gift for Village?", ml: "10. ഗ്രാമത്തിന് ഒരു സമ്മാനം?" }, 
+                emoji: "🎁", 
+                options: [ 
+                    { label: { en: "Library", ml: "വായനശാല" }, type: "Social", icon: "📚" }, 
+                    { label: { en: "Solar Plant", ml: "സോളാർ പ്ലാന്റ്" }, type: "Realistic", icon: "☀️" }, 
+                    { label: { en: "Cinema", ml: "സിനിമ തീയേറ്റർ" }, type: "Artistic", icon: "🎬" }, 
+                    { label: { en: "Mall", ml: "മാൾ (ഷോപ്പിംഗ്)" }, type: "Enterprising", icon: "🛍️" } 
+                ] 
+            },
             // RAPID FIRE
-            { text: "11. Pick an object!", emoji: "⚡", options: [ { label: "Microscope", type: "Realistic", icon: "🔬" }, { label: "Paintbrush", type: "Artistic", icon: "🖌️" }, { label: "Megaphone", type: "Enterprising", icon: "📣" }, { label: "First Aid Kit", type: "Social", icon: "🩹" } ] },
-            { text: "12. Pick a workspace!", emoji: "⚡", options: [ { label: "Garage/Lab", type: "Realistic", icon: "⚙️" }, { label: "Studio", type: "Artistic", icon: "🎻" }, { label: "Office/Boardroom", type: "Enterprising", icon: "💼" }, { label: "Hospital/School", type: "Social", icon: "🏥" } ] },
-            { text: "13. Pick a hobby!", emoji: "⚡", options: [ { label: "Fixing Bikes", type: "Realistic", icon: "🚲" }, { label: "Writing Songs", type: "Artistic", icon: "📝" }, { label: "Trading Cards", type: "Enterprising", icon: "🃏" }, { label: "Teaching Kids", type: "Social", icon: "👶" } ] },
-            { text: "14. Pick a hero!", emoji: "⚡", options: [ { label: "Inventor", type: "Realistic", icon: "💡" }, { label: "Artist", type: "Artistic", icon: "🎭" }, { label: "CEO", type: "Enterprising", icon: "👔" }, { label: "Activist", type: "Social", icon: "🕊️" } ] },
-            { text: "15. Final Choice!", emoji: "🌟", options: [ { label: "Tools", type: "Realistic", icon: "🔨" }, { label: "Colors", type: "Artistic", icon: "🌈" }, { label: "Money", type: "Enterprising", icon: "💰" }, { label: "People", type: "Social", icon: "❤️" } ] }
+            { 
+                text: { en: "11. Pick an object!", ml: "11. ഒരെണ്ണം തിരഞ്ഞെടുക്കൂ!" }, 
+                emoji: "⚡", 
+                options: [ 
+                    { label: { en: "Microscope", ml: "മൈക്രോസ്കോപ്പ്" }, type: "Realistic", icon: "🔬" }, 
+                    { label: { en: "Paintbrush", ml: "ബ്രഷ് & പെയിന്റ്" }, type: "Artistic", icon: "🖌️" }, 
+                    { label: { en: "Megaphone", ml: "മെഗാഫോൺ (മൈക്ക്)" }, type: "Enterprising", icon: "📣" }, 
+                    { label: { en: "First Aid Kit", ml: "ഫസ്റ്റ് എയ്ഡ് കിറ്റ്" }, type: "Social", icon: "🩹" } 
+                ] 
+            },
+            { 
+                text: { en: "12. Pick a workspace!", ml: "12. ജോലിസ്ഥലം തിരഞ്ഞെടുക്കൂ!" }, 
+                emoji: "⚡", 
+                options: [ 
+                    { label: { en: "Garage/Lab", ml: "ലാബ് / ഗാരേജ്" }, type: "Realistic", icon: "⚙️" }, 
+                    { label: { en: "Studio", ml: "സ്റ്റുഡിയോ" }, type: "Artistic", icon: "🎻" }, 
+                    { label: { en: "Office/Boardroom", ml: "ഓഫീസ്" }, type: "Enterprising", icon: "💼" }, 
+                    { label: { en: "Hospital/School", ml: "സ്കൂൾ / ആശുപത്രി" }, type: "Social", icon: "🏥" } 
+                ] 
+            },
+            { 
+                text: { en: "13. Pick a hobby!", ml: "13. ഒരു ഹോബി തിരഞ്ഞെടുക്കൂ!" }, 
+                emoji: "⚡", 
+                options: [ 
+                    { label: { en: "Fixing Bikes", ml: "വാഹനം നന്നാക്കൽ" }, type: "Realistic", icon: "🚲" }, 
+                    { label: { en: "Writing Songs", ml: "പാട്ട് എഴുതൽ" }, type: "Artistic", icon: "📝" }, 
+                    { label: { en: "Trading Cards", ml: "ബിസിനസ് ഗെയിം" }, type: "Enterprising", icon: "🃏" }, 
+                    { label: { en: "Teaching Kids", ml: "കുട്ടികളെ പഠിപ്പിക്കൽ" }, type: "Social", icon: "👶" } 
+                ] 
+            },
+            { 
+                text: { en: "14. Pick a hero!", ml: "14. നിങ്ങളുടെ ഹീറോ ആരാണ്?" }, 
+                emoji: "⚡", 
+                options: [ 
+                    { label: { en: "Inventor", ml: "ശാസ്ത്രജ്ഞൻ" }, type: "Realistic", icon: "💡" }, 
+                    { label: { en: "Artist", ml: "കലാകാരൻ" }, type: "Artistic", icon: "🎭" }, 
+                    { label: { en: "CEO", ml: "ബിസിനസ്സുകാരൻ" }, type: "Enterprising", icon: "👔" }, 
+                    { label: { en: "Activist", ml: "സാമൂഹ്യ പ്രവർത്തകൻ" }, type: "Social", icon: "🕊️" } 
+                ] 
+            },
+            { 
+                text: { en: "15. Final Choice!", ml: "15. അവസാന ചോദ്യം!" }, 
+                emoji: "🌟", 
+                options: [ 
+                    { label: { en: "Tools", ml: "ടൂളുകൾ (Tools)" }, type: "Realistic", icon: "🔨" }, 
+                    { label: { en: "Colors", ml: "നിറങ്ങൾ" }, type: "Artistic", icon: "🌈" }, 
+                    { label: { en: "Money", ml: "പണം" }, type: "Enterprising", icon: "💰" }, 
+                    { label: { en: "People", ml: "ആളുകൾ" }, type: "Social", icon: "❤️" } 
+                ] 
+            }
         ];
 
         let currentStep = 0;
         let scores = { Realistic: 0, Artistic: 0, Enterprising: 0, Social: 0 };
-        let historyStack = []; // To track selections for the Back button
+        let historyStack = [];
 
         function loadScenario() {
             if (currentStep >= scenarios.length) { showResults(); return; }
             
-            // Handle Back Button Visibility
             const backBtn = document.getElementById('btn-back');
             if(currentStep === 0) {
                 backBtn.classList.add('hidden');
@@ -262,50 +487,43 @@
             }
 
             const data = scenarios[currentStep];
-            document.getElementById('scenario-text').innerText = data.text;
+            // LOGIC CHANGE: Select text based on currentLang
+            document.getElementById('scenario-text').innerText = data.text[currentLang];
             document.getElementById('scene-emoji').innerText = data.emoji;
             
-            // Create options
-            // Note: We randomise options only on first load, but for simplicity here we randomise every time.
             let shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
             
             const container = document.getElementById('options-container');
-            container.innerHTML = ''; // Clear previous
+            container.innerHTML = ''; 
             
             shuffledOptions.forEach(opt => {
                 const btn = document.createElement('div');
                 btn.className = 'option-card';
-                btn.innerHTML = `<span style="font-size:1.5rem">${opt.icon}</span><strong style="margin-top:5px">${opt.label}</strong>`;
+                // LOGIC CHANGE: Select label based on currentLang
+                btn.innerHTML = `<span style="font-size:1.5rem">${opt.icon}</span><strong style="margin-top:5px">${opt.label[currentLang]}</strong>`;
                 btn.onclick = () => handleChoice(opt.type);
                 container.appendChild(btn);
             });
 
-            // Update Progress Bar
             document.getElementById('progress-bar').style.width = ((currentStep) / scenarios.length) * 100 + "%";
         }
 
         function handleChoice(type) { 
             scores[type]++; 
-            historyStack.push(type); // Save the choice type so we can undo it
+            historyStack.push(type); 
             currentStep++; 
             loadScenario(); 
         }
 
         function goBack() {
             if (currentStep <= 0) return;
-
-            // 1. Remove the score from the last choice
             const lastType = historyStack.pop();
-            if (lastType) {
-                scores[lastType]--;
-            }
-
-            // 2. Go back a step
+            if (lastType) { scores[lastType]--; }
             currentStep--;
             loadScenario();
         }
 
-        /* --- 5. RESULTS & DATA SUBMISSION --- */
+        /* --- 6. RESULTS (BILINGUAL) --- */
         function showResults() {
             document.getElementById('game-interface').classList.add('hidden');
             const resScreen = document.getElementById('screen-result');
@@ -316,50 +534,107 @@
             let topTrait = sortedScores[0][0];
             let secondTrait = sortedScores[1][0];
 
+            // RESULT TITLES IN BOTH LANGUAGES
             const hybridData = {
-                "Realistic-Artistic": { title: "The Design Engineer 📐", career: ["Architect", "Product Designer", "Game Developer", "Animator", "Landscape Designer"] },
-                "Realistic-Social": { title: "The Medical Healer 🩺", career: ["Surgeon", "Veterinarian", "Sports Coach", "Physiotherapist", "Firefighter"] },
-                "Realistic-Enterprising": { title: "The Builder Captain 🏗️", career: ["Pilot", "Civil Engineer", "Factory Manager", "Farm Owner", "Logistics Head"] },
-                "Artistic-Realistic": { title: "The Digital Creator 💻", career: ["UX/UI Designer", "Sound Engineer", "Photographer", "Fashion Designer", "Chef"] },
-                "Artistic-Social": { title: "The Inspiring Teacher 🎭", career: ["Drama Teacher", "Art Therapist", "Journalist", "Travel Guide", "Counselor"] },
-                "Artistic-Enterprising": { title: "The Media Star 🎬", career: ["Film Director", "Advertising Head", "Event Planner", "Social Media Influencer", "Brand Manager"] },
-                "Social-Realistic": { title: "The Hands-on Helper 🚑", career: ["Nurse", "Police Officer", "Paramedic", "Agriculture Officer", "Zoologist"] },
-                "Social-Artistic": { title: "The Storyteller 🗣️", career: ["Psychologist", "Speech Therapist", "Librarian", "Author/Writer", "Primary Teacher"] },
-                "Social-Enterprising": { title: "The Team Leader 🤝", career: ["School Principal", "HR Manager", "Hotel Manager", "NGO Leader", "TV Host"] },
-                "Enterprising-Realistic": { title: "The Tech Boss 🚀", career: ["Startup Founder", "Stock Trader", "Real Estate Developer", "Tech CEO", "Bank Manager"] },
-                "Enterprising-Artistic": { title: "The Visionary 💡", career: ["Marketing Director", "Creative Director", "Fashion Buyer", "Talent Agent", "Publicist"] },
-                "Enterprising-Social": { title: "The Public Leader 🏛️", career: ["Politician", "Lawyer", "Social Entrepreneur", "Hospital Admin", "Diplomat"] }
+                "Realistic-Artistic": { 
+                    title: { en: "The Design Engineer 📐", ml: "ഡിസൈൻ എഞ്ചിനീയർ 📐" },
+                    career: ["Architect", "Product Designer", "Game Developer", "Animator", "Landscape Designer"] 
+                },
+                "Realistic-Social": { 
+                    title: { en: "The Medical Healer 🩺", ml: "മെഡിക്കൽ ഹീലർ / ഡോക്ടർ 🩺" },
+                    career: ["Surgeon", "Veterinarian", "Sports Coach", "Physiotherapist", "Firefighter"] 
+                },
+                "Realistic-Enterprising": { 
+                    title: { en: "The Builder Captain 🏗️", ml: "നിർമ്മാണ വിദഗ്ധൻ 🏗️" },
+                    career: ["Pilot", "Civil Engineer", "Factory Manager", "Farm Owner", "Logistics Head"] 
+                },
+                "Artistic-Realistic": { 
+                    title: { en: "The Digital Creator 💻", ml: "ഡിജിറ്റൽ ക്രിയേറ്റർ 💻" },
+                    career: ["UX/UI Designer", "Sound Engineer", "Photographer", "Fashion Designer", "Chef"] 
+                },
+                "Artistic-Social": { 
+                    title: { en: "The Inspiring Teacher 🎭", ml: "അധ്യാപകൻ / കലാകാരൻ 🎭" },
+                    career: ["Drama Teacher", "Art Therapist", "Journalist", "Travel Guide", "Counselor"] 
+                },
+                "Artistic-Enterprising": { 
+                    title: { en: "The Media Star 🎬", ml: "മീഡിയ സ്റ്റാർ / സംവിധായകൻ 🎬" },
+                    career: ["Film Director", "Advertising Head", "Event Planner", "Social Media Influencer", "Brand Manager"] 
+                },
+                "Social-Realistic": { 
+                    title: { en: "The Hands-on Helper 🚑", ml: "സേവന സന്നദ്ധൻ 🚑" },
+                    career: ["Nurse", "Police Officer", "Paramedic", "Agriculture Officer", "Zoologist"] 
+                },
+                "Social-Artistic": { 
+                    title: { en: "The Storyteller 🗣️", ml: "എഴുത്തുകാരൻ / കഥാകാരൻ 🗣️" },
+                    career: ["Psychologist", "Speech Therapist", "Librarian", "Author/Writer", "Primary Teacher"] 
+                },
+                "Social-Enterprising": { 
+                    title: { en: "The Team Leader 🤝", ml: "ടീം ലീഡർ / മാനേജർ 🤝" },
+                    career: ["School Principal", "HR Manager", "Hotel Manager", "NGO Leader", "TV Host"] 
+                },
+                "Enterprising-Realistic": { 
+                    title: { en: "The Tech Boss 🚀", ml: "ടെക് ബോസ് / ബിസിനസുകാരൻ 🚀" },
+                    career: ["Startup Founder", "Stock Trader", "Real Estate Developer", "Tech CEO", "Bank Manager"] 
+                },
+                "Enterprising-Artistic": { 
+                    title: { en: "The Visionary 💡", ml: "വിഷനറി / ആശയരൂപീകർത്താവ് 💡" },
+                    career: ["Marketing Director", "Creative Director", "Fashion Buyer", "Talent Agent", "Publicist"] 
+                },
+                "Enterprising-Social": { 
+                    title: { en: "The Public Leader 🏛️", ml: "ജനനേതാവ് / വക്കീൽ 🏛️" },
+                    career: ["Politician", "Lawyer", "Social Entrepreneur", "Hospital Admin", "Diplomat"] 
+                }
             };
 
             let key = topTrait + "-" + secondTrait;
-            // Fallback if score is 0 or unexpected
-            let profile = hybridData[key] || { title: "The Master " + topTrait, career: ["Specialist in " + topTrait, "Researcher", "Consultant", "Analyst", "Innovator"] };
+            let profile = hybridData[key];
+            
+            // Fallback
+            if (!profile) {
+                profile = { 
+                    title: { en: "The Master " + topTrait, ml: topTrait + " വിദഗ്ധൻ" },
+                    career: ["Specialist in " + topTrait, "Researcher", "Consultant", "Analyst", "Innovator"]
+                };
+            }
 
-            document.getElementById('result-title').innerText = profile.title;
+            // Display Title
+            document.getElementById('result-title').innerText = profile.title[currentLang];
             
             const traitSentences = {
-                "Realistic": "You like using tools, fixing broken things, and understanding how machines work.",
-                "Artistic": "You have a colorful imagination and love to create new things or ideas.",
-                "Social": "You are a kind friend who loves helping people and solving their problems.",
-                "Enterprising": "You are brave, confident, and you like leading your team to success."
+                "Realistic": { 
+                    en: "You like using tools, fixing broken things, and understanding how machines work.", 
+                    ml: "ടൂളുകൾ ഉപയോഗിക്കാനും, യന്ത്രങ്ങൾ എങ്ങനെ പ്രവർത്തിക്കുന്നു എന്ന് മനസ്സിലാക്കാനും നിങ്ങൾക്ക് ഇഷ്ടമാണ്." 
+                },
+                "Artistic": { 
+                    en: "You have a colorful imagination and love to create new things or ideas.", 
+                    ml: "നിങ്ങൾക്ക് നല്ല ഭാവനാശേഷിയുണ്ട്. പുതിയ കാര്യങ്ങൾ സൃഷ്ടിക്കാൻ നിങ്ങൾക്ക് ഇഷ്ടമാണ്." 
+                },
+                "Social": { 
+                    en: "You are a kind friend who loves helping people and solving their problems.", 
+                    ml: "മറ്റുള്ളവരെ സഹായിക്കാനും അവരുടെ പ്രശ്നങ്ങൾ പരിഹരിക്കാനും ഇഷ്ടപ്പെടുന്ന ഒരു നല്ല സുഹൃത്താണ് നിങ്ങൾ." 
+                },
+                "Enterprising": { 
+                    en: "You are brave, confident, and you like leading your team to success.", 
+                    ml: "നിങ്ങൾക്ക് ആത്മവിശ്വാസമുണ്ട്. ഒരു ടീമിനെ വിജയത്തിലേക്ക് നയിക്കാൻ നിങ്ങൾക്ക് കഴിവുണ്ട്." 
+                }
             };
 
             document.getElementById('traits-list').innerHTML = `
-                <div style="margin-bottom:5px">✅ ${traitSentences[topTrait] || "Balanced Personality"}</div>
-                <div>✨ ${traitSentences[secondTrait] || "Versatile Skills"}</div>
+                <div style="margin-bottom:5px">✅ ${traitSentences[topTrait][currentLang]}</div>
+                <div>✨ ${traitSentences[secondTrait][currentLang]}</div>
             `;
             
             const cList = document.getElementById('career-list');
             cList.innerHTML = "";
+            // Careers remain in English as they are technical terms, but you can translate them if needed
             profile.career.forEach(c => { cList.innerHTML += `<li class="career-li">${c}</li>`; });
 
-            // TRIGGER DATA SAVE
-            sendDataToGoogleScript(profile.title, topTrait, scores);
+            sendDataToGoogleScript(profile.title.en, topTrait, scores); // Save English Title for easier analytics
         }
 
         function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
             const statusBox = document.getElementById('save-status');
-            statusBox.innerText = "Saving result...";
+            statusBox.innerText = currentLang === 'ml' ? "സേവ് ചെയ്യുന്നു..." : "Saving result...";
 
             const dataPayload = {
                 Name: userInfo.name,
@@ -369,7 +644,8 @@
                 Phone: userInfo.phone,
                 Result: resultTitle,
                 Top_Score: topTrait,
-                Scores_Detail: JSON.stringify(fullScores)
+                Scores_Detail: JSON.stringify(fullScores),
+                Language: currentLang
             };
 
             fetch(GOOGLE_SCRIPT_URL, {
@@ -378,11 +654,11 @@
                 headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify(dataPayload)
             }).then(() => {
-                statusBox.innerText = "✅ Result Saved Successfully!";
+                statusBox.innerText = currentLang === 'ml' ? "✅ വിജയിച്ചു!" : "✅ Result Saved Successfully!";
                 statusBox.style.color = "green";
             }).catch(err => {
                 console.error(err);
-                statusBox.innerText = "⚠️ Could not save data. Please check connection.";
+                statusBox.innerText = "⚠️ Error Saving Data.";
                 statusBox.style.color = "red";
             });
         }
