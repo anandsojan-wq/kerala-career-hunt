@@ -185,7 +185,7 @@
                 <div class="reg-form">
                     <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
                     <input type="text" id="inp-class" class="input-field" placeholder="Class / Grade" required>
-                    <input type="number" id="inp-age" class="input-field" placeholder="Age" min="2" max="20" required>
+                    <input type="number" id="inp-age" class="input-field" placeholder="Age" min="10" max="30" required>
                     <input type="text" id="inp-place" class="input-field" placeholder="Place" required>
                     <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" maxlength="10" pattern="\d{10}" required>
                     
@@ -246,7 +246,7 @@
                 placeholders: {
                     name: "Student Name",
                     class: "Class / Grade",
-                    age: "Age (2-20)",
+                    age: "Age (10-30)", // UPDATED
                     place: "Place",
                     phone: "Parent's Phone Number (10 Digits)"
                 },
@@ -256,7 +256,7 @@
                 aboutBody: "Imagine your personality is a puzzle. This game finds where you fit! It checks if you like <b>Doing</b> (Realistic), <b>Creating</b> (Artistic), <b>Helping</b> (Social), or <b>Leading</b> (Enterprising).",
                 errors: {
                     empty: "Please fill in all details to start!",
-                    age: "Age must be between 2 and 20!",
+                    age: "Age must be between 10 and 30!", // UPDATED
                     phone: "Phone number must be exactly 10 digits!"
                 }
             },
@@ -265,7 +265,7 @@
                 placeholders: {
                     name: "വിദ്യാർത്ഥിയുടെ പേര്",
                     class: "ക്ലാസ്",
-                    age: "വയസ്സ് (2-20)",
+                    age: "വയസ്സ് (10-30)", // UPDATED
                     place: "സ്ഥലം",
                     phone: "രക്ഷിതാവിൻ്റെ ഫോൺ (10 അക്കങ്ങൾ)"
                 },
@@ -275,7 +275,7 @@
                 aboutBody: "നിങ്ങളുടെ വ്യക്തിത്വം ഒരു പസിൽ പോലെയാണെന്ന് സങ്കൽപ്പിക്കുക. ഈ ഗെയിം നിങ്ങൾക്ക് അനുയോജ്യമായത് എന്താണെന്ന് കണ്ടെത്തുന്നു! നിങ്ങൾക്ക് <b>പ്രവർത്തിക്കാൻ</b> (Realistic), <b>സൃഷ്ടിക്കാൻ</b> (Artistic), <b>സഹായിക്കാൻ</b> (Social), അതോ <b>നയിക്കാൻ</b> (Enterprising) ആണോ ഇഷ്ടം എന്ന് ഇത് പരിശോധിക്കുന്നു.",
                 errors: {
                     empty: "ദയവായി എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക!",
-                    age: "വയസ്സ് 2-നും 20-നും ഇടയിലായിരിക്കണം!",
+                    age: "വയസ്സ് 10-നും 30-നും ഇടയിലായിരിക്കണം!", // UPDATED
                     phone: "ഫോൺ നമ്പർ കൃത്യം 10 അക്കങ്ങൾ ഉണ്ടായിരിക്കണം!"
                 }
             }
@@ -339,7 +339,7 @@
         }
 
         // --- 5. CONFIGURATION & DATA ---
-        // *** UPDATED URL HERE ***
+        // *** UPDATED URL ***
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvIe82cRmfjx7XBwV_6LwyoWI-pVWx8rIJndWczaAQrLgTGw/exec"; 
         
         let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
@@ -360,9 +360,9 @@
                 return;
             }
 
-            // 2. Validate AGE (Between 2 and 20)
+            // 2. Validate AGE (Between 10 and 30) -- UPDATED LOGIC
             const ageNum = parseInt(age);
-            if (isNaN(ageNum) || ageNum < 2 || ageNum > 20) {
+            if (isNaN(ageNum) || ageNum < 10 || ageNum > 30) {
                 showWarning(errs.age);
                 return;
             }
