@@ -10,6 +10,7 @@
             --primary: #05ABDF;
             --primary-dark: #0277bd;
             --secondary: #4caf50;
+            --warning: #ff5252;
             --bg: #e0f7fa;
             --text: #2c3e50;
         }
@@ -27,10 +28,12 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .fade-in {
-            animation: fadeIn 0.8s ease-out forwards;
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
+
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
 
         #game-container {
             width: 100%; max-width: 500px; height: 95vh;
@@ -56,16 +59,16 @@
 
         /* LOGO STYLE */
         .brand-logo { 
-            width: 280px; 
-            height: auto; 
-            margin-bottom: 10px; 
-            display: block;
+            width: 280px; height: auto; margin-bottom: 10px; display: block;
         }
 
         .popup-title { font-size: 1.8rem; color: var(--primary); margin: 5px 0 20px 0; text-transform: uppercase; line-height: 1.2; }
         .reg-form { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px; }
+        
         .input-field { padding: 12px 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s; }
         .input-field:focus { border-color: var(--primary); background: #e1f5fe; }
+        /* Remove arrows from number input */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
         .btn-start {
             margin-top: 10px; padding: 15px 30px; font-size: 1.1rem;
@@ -96,6 +99,25 @@
         }
         #about-modal h3 { margin-top: 0; color: #e65100; }
 
+        /* --- WARNING MODAL STYLE (NEW) --- */
+        #warning-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .warning-box {
+            background: white; width: 80%; max-width: 300px;
+            padding: 20px; border-radius: 15px; text-align: center;
+            border-top: 5px solid var(--warning);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        .btn-close-warning {
+            background: var(--warning); color: white; border: none;
+            padding: 10px 20px; border-radius: 20px; margin-top: 15px;
+            cursor: pointer; font-weight: bold;
+        }
+
         /* --- GAME UI --- */
         .nav-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -124,7 +146,6 @@
         .career-li { background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 5px; border-left: 4px solid var(--secondary); list-style: none; }
         .hidden { display: none !important; }
         
-        /* Loading Spinner */
         .loader-spinner {
             border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
             border-radius: 50%; width: 40px; height: 40px;
@@ -134,6 +155,14 @@
     </style>
 </head>
 <body>
+
+    <div id="warning-modal" class="hidden">
+        <div class="warning-box">
+            <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+            <p id="warning-text" style="color: #333; font-weight: bold; line-height: 1.5;">Error Message</p>
+            <button class="btn-close-warning" onclick="closeWarning()">OK / ശരി</button>
+        </div>
+    </div>
 
     <div id="game-container">
         <div id="initial-loader" style="position:absolute; top:40%; left:0; width:100%; text-align:center; z-index: 50;">
@@ -156,9 +185,9 @@
                 <div class="reg-form">
                     <input type="text" id="inp-name" class="input-field" placeholder="Student Name" required>
                     <input type="text" id="inp-class" class="input-field" placeholder="Class / Grade" required>
-                    <input type="number" id="inp-age" class="input-field" placeholder="Age" required>
+                    <input type="number" id="inp-age" class="input-field" placeholder="Age" min="2" max="20" required>
                     <input type="text" id="inp-place" class="input-field" placeholder="Place" required>
-                    <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" required>
+                    <input type="tel" id="inp-phone" class="input-field" placeholder="Parent's Phone Number" maxlength="10" pattern="\d{10}" required>
                     
                     <button class="btn-start" id="btn-start" onclick="validateAndStart()">Start Adventure 🚀</button>
                 </div>
@@ -210,39 +239,48 @@
     </div>
 
     <script>
-        // --- 1. LOCALIZATION DATA (INTRO) ---
+        // --- 1. LOCALIZATION DATA ---
         const translations = {
             en: {
                 title: "FIND YOUR<br>DREAM CAREER",
                 placeholders: {
                     name: "Student Name",
                     class: "Class / Grade",
-                    age: "Age",
+                    age: "Age (2-20)",
                     place: "Place",
-                    phone: "Parent's Phone Number"
+                    phone: "Parent's Phone Number (10 Digits)"
                 },
                 btnStart: "Start Adventure 🚀",
                 btnAbout: "About this Aptitude Quiz ℹ️",
                 aboutHead: "The Science: Holland Code (RIASEC)",
-                aboutBody: "Imagine your personality is a puzzle. This game finds where you fit! It checks if you like <b>Doing</b> (Realistic), <b>Creating</b> (Artistic), <b>Helping</b> (Social), or <b>Leading</b> (Enterprising)."
+                aboutBody: "Imagine your personality is a puzzle. This game finds where you fit! It checks if you like <b>Doing</b> (Realistic), <b>Creating</b> (Artistic), <b>Helping</b> (Social), or <b>Leading</b> (Enterprising).",
+                errors: {
+                    empty: "Please fill in all details to start!",
+                    age: "Age must be between 2 and 20!",
+                    phone: "Phone number must be exactly 10 digits!"
+                }
             },
             ml: {
                 title: "നിങ്ങളുടെ<br>സ്വപ്ന ജോലി കണ്ടെത്തൂ",
                 placeholders: {
                     name: "വിദ്യാർത്ഥിയുടെ പേര്",
                     class: "ക്ലാസ്",
-                    age: "വയസ്സ്",
+                    age: "വയസ്സ് (2-20)",
                     place: "സ്ഥലം",
-                    phone: "രക്ഷിതാവിൻ്റെ ഫോൺ നമ്പർ"
+                    phone: "രക്ഷിതാവിൻ്റെ ഫോൺ (10 അക്കങ്ങൾ)"
                 },
                 btnStart: "തുടങ്ങാം 🚀",
                 btnAbout: "ഈ ക്വിസിനെക്കുറിച്ച് കൂടുതൽ അറിയാം ℹ️",
                 aboutHead: "എന്താണ് ഹോളണ്ട് കോഡ് (RIASEC)?",
-                aboutBody: "നിങ്ങളുടെ വ്യക്തിത്വം ഒരു പസിൽ പോലെയാണെന്ന് സങ്കൽപ്പിക്കുക. ഈ ഗെയിം നിങ്ങൾക്ക് അനുയോജ്യമായത് എന്താണെന്ന് കണ്ടെത്തുന്നു! നിങ്ങൾക്ക് <b>പ്രവർത്തിക്കാൻ</b> (Realistic), <b>സൃഷ്ടിക്കാൻ</b> (Artistic), <b>സഹായിക്കാൻ</b> (Social), അതോ <b>നയിക്കാൻ</b> (Enterprising) ആണോ ഇഷ്ടം എന്ന് ഇത് പരിശോധിക്കുന്നു."
+                aboutBody: "നിങ്ങളുടെ വ്യക്തിത്വം ഒരു പസിൽ പോലെയാണെന്ന് സങ്കൽപ്പിക്കുക. ഈ ഗെയിം നിങ്ങൾക്ക് അനുയോജ്യമായത് എന്താണെന്ന് കണ്ടെത്തുന്നു! നിങ്ങൾക്ക് <b>പ്രവർത്തിക്കാൻ</b> (Realistic), <b>സൃഷ്ടിക്കാൻ</b> (Artistic), <b>സഹായിക്കാൻ</b> (Social), അതോ <b>നയിക്കാൻ</b> (Enterprising) ആണോ ഇഷ്ടം എന്ന് ഇത് പരിശോധിക്കുന്നു.",
+                errors: {
+                    empty: "ദയവായി എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക!",
+                    age: "വയസ്സ് 2-നും 20-നും ഇടയിലായിരിക്കണം!",
+                    phone: "ഫോൺ നമ്പർ കൃത്യം 10 അക്കങ്ങൾ ഉണ്ടായിരിക്കണം!"
+                }
             }
         };
 
-        // Current Language (Default English)
         let currentLang = 'en';
 
         // --- 2. SMOOTH LOADING LOGIC ---
@@ -255,7 +293,6 @@
             const revealUI = () => {
                 loader.style.display = 'none';
                 introPopup.style.opacity = 1; 
-                // Show Language Screen first
                 langScreen.classList.remove('hidden');
                 langScreen.classList.add('fade-in');
             };
@@ -269,7 +306,6 @@
             currentLang = lang;
             const t = translations[lang];
 
-            // Apply translations to Form
             document.getElementById('lbl-title').innerHTML = t.title;
             document.getElementById('inp-name').placeholder = t.placeholders.name;
             document.getElementById('inp-class').placeholder = t.placeholders.class;
@@ -281,7 +317,6 @@
             document.getElementById('about-head').innerText = t.aboutHead;
             document.getElementById('about-body').innerHTML = t.aboutBody;
 
-            // Switch Screens
             document.getElementById('language-screen').classList.add('hidden');
             const formScreen = document.getElementById('form-screen');
             formScreen.classList.remove('hidden');
@@ -293,31 +328,60 @@
             modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
         }
 
-        // --- 4. CONFIGURATION & DATA ---
+        // --- 4. WARNING MODAL FUNCTIONS ---
+        function showWarning(message) {
+            document.getElementById('warning-text').innerText = message;
+            document.getElementById('warning-modal').classList.remove('hidden');
+        }
+
+        function closeWarning() {
+            document.getElementById('warning-modal').classList.add('hidden');
+        }
+
+        // --- 5. CONFIGURATION & DATA ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMX3bzvQa4Y8ZKUSxasxQvle82cRmfjx7XBwV_6LwyoWl-pVWx8rlJndWczaAQrLgTGw/exec"; 
         let userInfo = { name: "", class: "", age: "", place: "", phone: "" };
 
+        // --- UPDATED VALIDATION LOGIC ---
         function validateAndStart() {
-            const name = document.getElementById('inp-name').value;
-            const stuClass = document.getElementById('inp-class').value;
-            const age = document.getElementById('inp-age').value;
-            const place = document.getElementById('inp-place').value;
-            const phone = document.getElementById('inp-phone').value;
+            const name = document.getElementById('inp-name').value.trim();
+            const stuClass = document.getElementById('inp-class').value.trim();
+            const age = document.getElementById('inp-age').value.trim();
+            const place = document.getElementById('inp-place').value.trim();
+            const phone = document.getElementById('inp-phone').value.trim();
 
+            const errs = translations[currentLang].errors;
+
+            // 1. Check for Empty Fields
             if(name === "" || stuClass === "" || age === "" || place === "" || phone === "") {
-                alert(currentLang === 'ml' ? "ദയവായി എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക!" : "Please fill in all details to start!");
+                showWarning(errs.empty);
                 return;
             }
+
+            // 2. Validate AGE (Between 2 and 20)
+            const ageNum = parseInt(age);
+            if (isNaN(ageNum) || ageNum < 2 || ageNum > 20) {
+                showWarning(errs.age);
+                return;
+            }
+
+            // 3. Validate PHONE (Exactly 10 Digits)
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phone)) {
+                showWarning(errs.phone);
+                return;
+            }
+
+            // Validation Passed
             userInfo = { name, class: stuClass, age, place, phone };
             
-            // UI Transition
             document.getElementById('intro-popup').style.display = 'none';
             document.getElementById('game-interface').classList.remove('hidden');
             document.getElementById('game-interface').classList.add('fade-in');
             loadScenario();
         }
 
-        /* --- 5. GAME CONTENT (BILINGUAL) --- */
+        /* --- 6. GAME CONTENT (BILINGUAL) --- */
         const scenarios = [
             { 
                 text: { en: "1. Village Center: What do you build first?", ml: "1. ഗ്രാമ കേന്ദ്രം: നിങ്ങൾ ആദ്യം എന്ത് നിർമ്മിക്കും?" }, 
@@ -487,7 +551,6 @@
             }
 
             const data = scenarios[currentStep];
-            // LOGIC CHANGE: Select text based on currentLang
             document.getElementById('scenario-text').innerText = data.text[currentLang];
             document.getElementById('scene-emoji').innerText = data.emoji;
             
@@ -499,7 +562,6 @@
             shuffledOptions.forEach(opt => {
                 const btn = document.createElement('div');
                 btn.className = 'option-card';
-                // LOGIC CHANGE: Select label based on currentLang
                 btn.innerHTML = `<span style="font-size:1.5rem">${opt.icon}</span><strong style="margin-top:5px">${opt.label[currentLang]}</strong>`;
                 btn.onclick = () => handleChoice(opt.type);
                 container.appendChild(btn);
@@ -523,7 +585,7 @@
             loadScenario();
         }
 
-        /* --- 6. RESULTS (BILINGUAL) --- */
+        /* --- 7. RESULTS (BILINGUAL) --- */
         function showResults() {
             document.getElementById('game-interface').classList.add('hidden');
             const resScreen = document.getElementById('screen-result');
@@ -534,7 +596,6 @@
             let topTrait = sortedScores[0][0];
             let secondTrait = sortedScores[1][0];
 
-            // RESULT TITLES IN BOTH LANGUAGES
             const hybridData = {
                 "Realistic-Artistic": { 
                     title: { en: "The Design Engineer 📐", ml: "ഡിസൈൻ എഞ്ചിനീയർ 📐" },
@@ -589,7 +650,6 @@
             let key = topTrait + "-" + secondTrait;
             let profile = hybridData[key];
             
-            // Fallback
             if (!profile) {
                 profile = { 
                     title: { en: "The Master " + topTrait, ml: topTrait + " വിദഗ്ധൻ" },
@@ -597,7 +657,6 @@
                 };
             }
 
-            // Display Title
             document.getElementById('result-title').innerText = profile.title[currentLang];
             
             const traitSentences = {
@@ -626,10 +685,9 @@
             
             const cList = document.getElementById('career-list');
             cList.innerHTML = "";
-            // Careers remain in English as they are technical terms, but you can translate them if needed
             profile.career.forEach(c => { cList.innerHTML += `<li class="career-li">${c}</li>`; });
 
-            sendDataToGoogleScript(profile.title.en, topTrait, scores); // Save English Title for easier analytics
+            sendDataToGoogleScript(profile.title.en, topTrait, scores);
         }
 
         function sendDataToGoogleScript(resultTitle, topTrait, fullScores) {
